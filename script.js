@@ -1,13 +1,11 @@
 let colunaSelecionada = "";
+let botaoSelecionado = null;
 
 function organizarDados(coluna) {
-    // Obtendo o valor do texto inserido na caixa de texto
     const texto = document.getElementById("dadosInput").value;
-
-    // Salvando o texto no localStorage
     localStorage.setItem("dadosInput", texto);
 
-    // Removendo a classe da coluna anteriormente selecionada, se houver
+    // Remove a classe da coluna anteriormente selecionada, se houver
     if (colunaSelecionada !== "") {
         const colunaAnterior = document.getElementById(colunaSelecionada);
         if (colunaAnterior) {
@@ -15,21 +13,29 @@ function organizarDados(coluna) {
         }
     }
 
-    // Selecionando a coluna atual e adicionando a classe
+    // Seleciona a nova coluna e adiciona a classe
     const colunaAtual = document.getElementById(coluna);
     if (colunaAtual) {
         colunaAtual.classList.add("selected-column");
         colunaSelecionada = coluna;
     }
 
-    // Separando as linhas de entrada
-    const linhas = texto.split('\n');
+    // Muda a cor do botão pressionado
+    if (botaoSelecionado) {
+        botaoSelecionado.classList.remove("selected");
+    }
+    const botoes = document.querySelectorAll(".button");
+    botoes.forEach(button => {
+        if (button.innerText === coluna) {
+            button.classList.add("selected");
+            botaoSelecionado = button;
+        }
+    });
 
-    // Limpando a tabela antes de adicionar novos dados
+    const linhas = texto.split('\n');
     const tabela = document.getElementById("tabelaDados");
     tabela.innerHTML = "";
 
-    // Adicionando cabeçalho à tabela
     const cabecalho = ["Login", "RiotId", "Level", "Region", "Solo/Duo", "Flex", "Skins", "Champions", "RP", "BE"];
     const thead = document.createElement("thead");
     const trHead = document.createElement("tr");
@@ -45,14 +51,12 @@ function organizarDados(coluna) {
     thead.appendChild(trHead);
     tabela.appendChild(thead);
 
-    // Adicionando dados à tabela
     const tbody = document.createElement("tbody");
     const dadosTabela = linhas.map(linha => {
         const dados = linha.split(' - ').map(item => item.split(': ')[1]);
         return dados;
     });
 
-    // Ordenando os dados pela coluna selecionada em ordem decrescente
     dadosTabela.sort((a, b) => {
         const colunaIndex = cabecalho.indexOf(coluna);
         return parseInt(b[colunaIndex]) - parseInt(a[colunaIndex]);
@@ -71,10 +75,9 @@ function organizarDados(coluna) {
 }
 
 window.onload = function() {
-    // Carregando o texto salvo do localStorage
     const dadosSalvos = localStorage.getItem("dadosInput");
     if (dadosSalvos) {
         document.getElementById("dadosInput").value = dadosSalvos;
-        organizarDados("Level"); // Organiza inicialmente pela coluna "Level"
+        organizarDados("Level");
     }
 }
