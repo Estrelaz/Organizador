@@ -1,32 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizador de Dados</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
     <style>
-        .selected-column {
-            background-color: #6fba65;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #616161;
+        }
+        h2, h3 {
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.clicked {
+            animation: pulse 0.5s ease;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #output {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            color: white;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #3b3b3b;
+        }
+        tr:nth-child(odd) {
+            background-color: #333333;
         }
     </style>
 </head>
 <body>
-    <div class="bg-gradient"></div>
-    <div class="content">
-        <h1>Organizador de Dados</h1>
-        <textarea id="dadosInput" rows="10" cols="100" placeholder="Insira os dados aqui..."></textarea>
-        <br>
-        <div class="button-container">
-            <button class="button" onclick="organizarDados('Level')">Level</button>
-            <button class="button" onclick="organizarDados('Skins')">Skins</button>
-            <button class="button" onclick="organizarDados('Champions')">Champions</button>
-            <button class="button" onclick="organizarDados('RP')">RP</button>
-            <button class="button" onclick="organizarDados('BE')">BE</button>
-        </div>
-        <br>
-        <table id="tabelaDados" border="1"></table>
+    <div class="container">
+        <h2>Organizador de Dados</h2>
+        <textarea id="inputData" placeholder="Cole seus dados aqui..."></textarea>
+        <button onclick="organizeData()" id="organizeButton">Organizar</button>
+        <div id="output"></div>
     </div>
+
+    <script>
+        // Função para organizar e exibir os dados
+        function organizeData() {
+            var organizeButton = document.getElementById('organizeButton');
+            organizeButton.classList.add('clicked');
+            
+            var inputData = document.getElementById('inputData').value;
+            localStorage.setItem('inputData', inputData);
+            displayData(inputData);
+            
+            setTimeout(function(){
+                organizeButton.classList.remove('clicked');
+            }, 500); // Tempo da animação em milissegundos
+        }
+
+        // Função para exibir os dados
+        function displayData(inputData) {
+            var accounts = inputData.split('\n');
+
+            var accountData = [];
+            accounts.forEach(accountLine => {
+                var accountMatch = accountLine.match(/Account:([^|]+)/);
+                var rpMatch = accountLine.match(/RP:\s*([\d]+)/);
+
+                if (accountMatch && rpMatch) {
+                    var account = accountMatch[1].trim();
+                    var rp = parseInt(rpMatch[1].trim());
+                    accountData.push({ account, rp });
+                }
+            });
+
+            accountData.sort((a, b) => b.rp - a.rp);
+
+            var output = "<h3>Contas Organizadas por RP</h3>";
+            output += "<table>";
+            output += "<tr><th>Nº</th><th>Account</th><th>RP</th><th>Ação</th></tr>";
+            accountData.forEach((data, index) => {
+                output += `<tr>
+                            <td>${index + 1}</td>
+                            <td>${data.account}</td>
+                            <td>${data.rp}</td>
+                            <td><button onclick="copyToClipboard('${data.account}', this)" class="copyButton">Copiar</button></td>
+                           </tr>`;
+            });
+            output += "</table>";
+
+            document.getElementById('output').innerHTML = output;
+        }
+
+        // Função para copiar o conteúdo do account para o clipboard
+        function copyToClipboard(text, button) {
+            var textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            
+            button.classList.add('clicked');
+            setTimeout(function(){
+                button.classList.remove('clicked');
+            }, 500); // Tempo da animação em milissegundos
+        }
+
+        // Função para carregar os dados do Local Storage ao carregar a página
+        function loadData() {
+            var savedData = localStorage.getItem('inputData');
+            if (savedData) {
+                document.getElementById('inputData').value = savedData;
+                displayData(savedData);
+            }
+        }
+
+        // Chama a função loadData quando a página é carregada
+        window.onload = loadData;
+    </script>
 </body>
 </html>
