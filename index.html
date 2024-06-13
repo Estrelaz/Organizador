@@ -65,6 +65,12 @@
         tr:nth-child(odd) {
             background-color: #333333;
         }
+        .status-yes {
+            color: #FF6347; /* Red */
+        }
+        .status-no {
+            color: #32CD32; /* Green */
+        }
     </style>
 </head>
 <body>
@@ -98,24 +104,31 @@
             accounts.forEach(accountLine => {
                 var accountMatch = accountLine.match(/Account:([^|]+)/);
                 var rpMatch = accountLine.match(/RP:\s*([\d]+)/);
+                var bannedMatch = accountLine.match(/Banned:\s*(Yes|No)/i);
 
-                if (accountMatch && rpMatch) {
+                if (accountMatch && rpMatch && bannedMatch) {
                     var account = accountMatch[1].trim();
                     var rp = parseInt(rpMatch[1].trim());
-                    accountData.push({ account, rp });
+                    var banned = bannedMatch[1].trim();
+
+                    var status = banned === 'Yes' ? '🔴' : '🟢';
+
+                    accountData.push({ account, rp, banned, status });
                 }
             });
 
             accountData.sort((a, b) => b.rp - a.rp);
 
-            var output = "<h3>Contas Organizadas por RP</h3>";
+            var output = "<h3>Contas Organizadas por RP</h3> <p style='color: white;'>Banido🔴 | Online🟢</p>";
             output += "<table>";
-            output += "<tr><th>Nº</th><th>Account</th><th>RP</th><th>Ação</th></tr>";
+            output += "<tr><th>Nº</th><th>Account</th><th>RP</th><th>Status</th><th>Ação</th></tr>";
             accountData.forEach((data, index) => {
+                var statusClass = data.banned === 'Yes' ? 'status-yes' : 'status-no';
                 output += `<tr>
                             <td>${index + 1}</td>
                             <td>${data.account}</td>
                             <td>${data.rp}</td>
+                            <td class="${statusClass}">${data.status}</td>
                             <td><button onclick="copyToClipboard('${data.account}', this)" class="copyButton">Copiar</button></td>
                            </tr>`;
             });
