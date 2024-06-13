@@ -10,7 +10,7 @@
             margin: 20px;
             background-color: #616161;
         }
-        h2, h3 {
+        h2, h3, p {
             color: white;
         }
         .container {
@@ -101,6 +101,7 @@
             var accounts = inputData.split('\n');
 
             var accountData = [];
+            var bannedData = [];
             accounts.forEach(accountLine => {
                 var accountMatch = accountLine.match(/Account:([^|]+)/);
                 var rpMatch = accountLine.match(/RP:\s*([\d]+)/);
@@ -113,13 +114,18 @@
 
                     var status = banned === 'Yes' ? '🔴' : '🟢';
 
-                    accountData.push({ account, rp, banned, status });
+                    if (banned === 'Yes') {
+                        bannedData.push({ account, rp, banned, status });
+                    } else {
+                        accountData.push({ account, rp, banned, status });
+                    }
                 }
             });
 
             accountData.sort((a, b) => b.rp - a.rp);
+            bannedData.sort((a, b) => b.rp - a.rp);
 
-            var output = "<h3>Contas Organizadas por RP</h3> <p style='color: white;'>Banido🔴 | Online🟢</p>";
+            var output = "<h3>Contas Organizadas por RP</h3><p style='color: white;'>Online 🟢</p>";
             output += "<table>";
             output += "<tr><th>Nº</th><th>Account</th><th>RP</th><th>Status</th><th>Ação</th></tr>";
             accountData.forEach((data, index) => {
@@ -134,7 +140,22 @@
             });
             output += "</table>";
 
-            document.getElementById('output').innerHTML = output;
+            var bannedOutput = "<h3>Contas Banidas</h3><p style='color: white;'>Banido 🔴</p>";
+            bannedOutput += "<table>";
+            bannedOutput += "<tr><th>Nº</th><th>Account</th><th>RP</th><th>Status</th><th>Ação</th></tr>";
+            bannedData.forEach((data, index) => {
+                var statusClass = 'status-yes';
+                bannedOutput += `<tr>
+                                <td>${index + 1}</td>
+                                <td>${data.account}</td>
+                                <td>${data.rp}</td>
+                                <td class="${statusClass}">${data.status}</td>
+                                <td><button onclick="copyToClipboard('${data.account}', this)" class="copyButton">Copiar</button></td>
+                               </tr>`;
+            });
+            bannedOutput += "</table>";
+
+            document.getElementById('output').innerHTML = output + "<br><br>" + bannedOutput;
         }
 
         // Função para copiar o conteúdo do account para o clipboard
